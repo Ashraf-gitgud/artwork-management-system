@@ -7,7 +7,6 @@ import buyerRoutes from "./routes/buyerRoutes.js";
 import depositorRoutes from "./routes/depositorRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import artworkRoutes from "./routes/artworkRoutes.js";
-import artworkHistoryRoutes from "./routes/artworkHistory.js";
 
 const app = express();
 
@@ -20,7 +19,6 @@ app.use("/api/buyers", buyerRoutes);
 app.use("/api/depositors", depositorRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/artworks", artworkRoutes);
-app.use("/api/history", artworkHistoryRoutes);
 
 app.get("/", (req, res) => {
   res.json({

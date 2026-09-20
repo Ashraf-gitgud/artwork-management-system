@@ -3,31 +3,20 @@ import Artist from "../models/Artist.js";
 import Category from "../models/Category.js";
 import Depositor from "../models/Depositor.js";
 import Buyer from "../models/Buyer.js";
-import ArtworkHistory from "../models/ArtworkHistory.js";
 
 const GALLERY_STATUSES = [
   "for_sale",
   "for_auction",
   "for_exhibit",
   "in_storage",
+  "returned",
   "being_restored",
 ];
 
 const BIN_STATUSES = [
   "sold",
-  "returned",
   "missing",
 ];
-
-const createHistory = async (artworkId, action, user, notes = null) => {
-  await ArtworkHistory.create({
-    artworkId,
-    action,
-    userId: user.userId,
-    userLastName: user.lastName,
-    notes,
-  });
-};
 
 export const getArtworks = async (req, res) => {
   try {
@@ -47,8 +36,8 @@ export const getArtworks = async (req, res) => {
 export const getArtworkById = async (req, res) => {
   try {
     const artwork = await Artwork.findById(req.params.id)
-    .populate("artistId")
-    .populate("categoryId");
+      .populate("artistId")
+      .populate("categoryId");
 
     if (!artwork) {
       return res.status(404).json({
@@ -109,13 +98,6 @@ export const createArtwork = async (req, res) => {
       exitDate: null,
     });
 
-    await createHistory(
-      artwork._id,
-      "added",
-      req.user,
-      "Artwork added to inventory"
-    );
-
     res.status(201).json(artwork);
   } catch (error) {
     res.status(400).json({
@@ -156,7 +138,6 @@ export const updateArtwork = async (req, res) => {
     }
 
     const allowedFields = [
-      "inventoryNumber",
       "title",
       "artistId",
       "categoryId",
@@ -229,10 +210,12 @@ export const changeArtworkStatus = async (req, res) => {
   try {
     const { status, notes } = req.body;
 
-    if (![
-      ...GALLERY_STATUSES,
-      ...BIN_STATUSES,
-    ].includes(status)) {
+    if (
+      ![
+        ...GALLERY_STATUSES,
+        ...BIN_STATUSES,
+      ].includes(status)
+    ) {
       return res.status(400).json({
         message: "Invalid artwork status",
       });
@@ -262,6 +245,10 @@ export const changeArtworkStatus = async (req, res) => {
       artwork.exitDate = null;
     }
 
+    if (status === "returned") {
+    artwork.buyerCin = null;
+    }
+
     await artwork.save();
 
     let action = "status_changed";
@@ -281,13 +268,6 @@ export const changeArtworkStatus = async (req, res) => {
     } else if (status === "missing") {
       action = "marked_missing";
     }
-
-    await createHistory(
-      artwork._id,
-      action,
-      req.user,
-      notes || `Status changed from ${previousStatus} to ${status}`
-    );
 
     res.json(artwork);
   } catch (error) {
@@ -337,12 +317,6 @@ export const sellArtwork = async (req, res) => {
 
     await artwork.save();
 
-    await createHistory(
-      artwork._id,
-      "sold",
-      req.user,
-      notes || "Artwork sold"
-    );
 
     res.json(artwork);
   } catch (error) {

@@ -2,13 +2,6 @@ import mongoose from "mongoose";
 
 const artworkSchema = new mongoose.Schema(
   {
-    inventoryNumber: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-
     title: {
       type: String,
       required: true,
@@ -84,7 +77,7 @@ const artworkSchema = new mongoose.Schema(
 
     condition: {
       type: String,
-      enum: ["excellent", "bon", "deteriore"],
+      enum: ["Pristine", "Good", "Damaged" , "Deteriorated"],
       required: true,
     },
 
@@ -106,6 +99,7 @@ const artworkSchema = new mongoose.Schema(
     depositorCin: {
       type: String,
       trim: true,
+      required: true,
     },
 
     buyerCin: {
