@@ -7,6 +7,7 @@ import { CONDITION_OPTIONS, UNIT_OPTIONS } from './artworkUtils';
 import { useGetArtistsQuery } from '../artists/artistApi';
 import { useGetCategoriesQuery } from '../categories/categoryApi';
 import { useGetDepositorsQuery } from '../depositors/depositorApi';
+import { supabase } from '../../lib/supabase';
 
 export default function ArtworkForm({
   defaultValues,
@@ -22,6 +23,7 @@ export default function ArtworkForm({
   } = useForm({
     defaultValues: {
       title: '',
+      image: null,
       imageUrl: '',
       condition: 'Good',
       artistId: '',
@@ -48,34 +50,59 @@ export default function ArtworkForm({
 
   useEffect(() => {
     if (defaultValues) {
-      reset({
-        title: defaultValues.title || '',
-        imageUrl: defaultValues.imageUrl || '',
-        condition: defaultValues.condition || 'Good',
-        artistId: defaultValues.artistId?._id || defaultValues.artistId || '',
-        categoryId: defaultValues.categoryId?._id || defaultValues.categoryId || '',
-        creationDate: defaultValues.creationDate
-          ? defaultValues.creationDate.slice(0, 10)
-          : '',
-        medium: defaultValues.medium || '',
-        technique: defaultValues.technique || '',
-        material: defaultValues.material || '',
-        signatureLocation: defaultValues.signatureLocation || '',
-        creationCertificate: defaultValues.creationCertificate || false,
-        height: defaultValues.dimensions?.height ?? '',
-        width: defaultValues.dimensions?.width ?? '',
-        depth: defaultValues.dimensions?.depth ?? '',
-        unit: defaultValues.dimensions?.unit || 'cm',
-        depositorCin: defaultValues.depositorCin || '',
-        notes: defaultValues.notes || '',
-      });
+    reset({
+      title: defaultValues.title || '',
+      condition: defaultValues.condition || 'Good',
+      artistId: defaultValues.artistId?._id || defaultValues.artistId || '',
+      categoryId: defaultValues.categoryId?._id || defaultValues.categoryId || '',
+      creationDate: defaultValues.creationDate
+        ? defaultValues.creationDate.slice(0, 10)
+        : '',
+      medium: defaultValues.medium || '',
+      technique: defaultValues.technique || '',
+      material: defaultValues.material || '',
+      signatureLocation: defaultValues.signatureLocation || '',
+      creationCertificate: defaultValues.creationCertificate || false,
+      height: defaultValues.dimensions?.height ?? '',
+      width: defaultValues.dimensions?.width ?? '',
+      depth: defaultValues.dimensions?.depth ?? '',
+      unit: defaultValues.dimensions?.unit || 'cm',
+      depositorCin: defaultValues.depositorCin || '',
+      notes: defaultValues.notes || '',
+    });
     }
   }, [defaultValues, reset]);
 
-  const submit = (data) => {
+const submit = async (data) => {
+  try {
+    let imageUrl = data.imageUrl || undefined;
+
+    if (data.image?.length > 0) {
+      const file = data.image[0];
+
+      const filePath = `artworks/${crypto.randomUUID()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('artworks')
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('artworks')
+        .getPublicUrl(filePath);
+
+      imageUrl = publicUrlData.publicUrl;
+    }
+
     const payload = {
       title: data.title,
-      imageUrl: data.imageUrl || undefined,
+      imageUrl,
       condition: data.condition,
       artistId: data.artistId || undefined,
       categoryId: data.categoryId,
@@ -94,8 +121,12 @@ export default function ArtworkForm({
       depositorCin: data.depositorCin,
       notes: data.notes || undefined,
     };
+
     onSubmit(payload);
-  };
+  } catch (error) {
+    console.error('Image upload failed:', error);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-8">
@@ -111,11 +142,26 @@ export default function ArtworkForm({
             {...register('title', { required: 'Title is required' })}
             error={errors.title?.message}
           />
-          <Input
-            label="Image URL"
-            {...register('imageUrl')}
-            placeholder="https://..."
-          />
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-1">
+              Artwork Image
+            </label>
+
+            <input
+              type="file"
+              accept="image/*"
+              {...register('image')}
+              className="block w-full text-sm text-navy-700
+                file:mr-4 file:rounded-md file:border-0
+                file:bg-navy-700 file:px-4 file:py-2
+                file:text-sm file:font-medium file:text-white
+                hover:file:bg-navy-800"
+            />
+
+            <p className="mt-1 text-xs text-navy-500">
+              Upload an image of the artwork.
+            </p>
+          </div>
           <Select
             label="Condition"
             required
