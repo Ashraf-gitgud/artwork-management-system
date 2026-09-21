@@ -6,6 +6,7 @@ const titles = {
   '/dashboard': 'Dashboard',
   '/artworks': 'Artworks',
   '/artworks/new': 'New Artwork',
+  '/records': 'Records',
   '/artists': 'Artists',
   '/buyers': 'Buyers',
   '/depositors': 'Depositors',

@@ -5,6 +5,7 @@ import { baseApi } from '../../api/baseApi';
 import {
   LayoutDashboard,
   Image,
+  Archive,
   Users,
   UserCheck,
   Package,
@@ -17,6 +18,7 @@ import {
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/artworks', label: 'Artworks', icon: Image },
+  { to: '/records', label: 'Records', icon: Archive },
   { to: '/artists', label: 'Artists', icon: Users },
   { to: '/buyers', label: 'Buyers', icon: UserCheck },
   { to: '/depositors', label: 'Depositors', icon: Package },
@@ -47,7 +49,7 @@ export default function Sidebar({ open, onClose }) {
         `}
       >
         <div className="flex items-center justify-between h-14 px-4 border-b border-navy-700">
-          <span className="font-bold text-lg tracking-wide">Gallery Admin</span>
+          <span className="font-serif text-xl font-medium tracking-wide">Dar d'Art Gallery</span>
           <button className="lg:hidden p-1" onClick={onClose}>
             <X size={20} />
           </button>

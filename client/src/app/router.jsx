@@ -6,6 +6,7 @@ import Dashboard from '../pages/Dashboard/Dashboard';
 import Artworks from '../pages/Artworks/Artworks';
 import NewArtwork from '../pages/Artworks/NewArtwork';
 import ArtworkDetails from '../pages/Artworks/ArtworkDetails';
+import Records from '../pages/Records/Records';
 import Artists from '../pages/Artists/Artists';
 import Buyers from '../pages/Buyers/Buyers';
 import Depositors from '../pages/Depositors/Depositors';
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
           { path: 'artworks', element: <Artworks /> },
           { path: 'artworks/new', element: <NewArtwork /> },
           { path: 'artworks/:id', element: <ArtworkDetails /> },
+          { path: 'records', element: <Records /> },
           { path: 'artists', element: <Artists /> },
           { path: 'buyers', element: <Buyers /> },
           { path: 'depositors', element: <Depositors /> },

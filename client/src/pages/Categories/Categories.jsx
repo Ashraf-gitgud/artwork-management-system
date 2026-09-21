@@ -11,6 +11,8 @@ import Input from '../../components/ui/Input';
 import Modal from '../../components/ui/Modal';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
+import Pagination from '../../components/ui/Pagination';
+import usePagination from '../../hooks/usePagination';
 
 export default function Categories() {
   const { data: categories = [], isLoading, isError } = useGetCategoriesQuery();
@@ -37,6 +39,15 @@ export default function Categories() {
         c.description?.toLowerCase().includes(q)
     );
   }, [categories, search]);
+
+  const {
+    page,
+    pageSize,
+    total,
+    paginated,
+    setPage,
+    setPageSize,
+  } = usePagination(filtered, 10);
 
   const openCreate = () => {
     setEditing(null);
@@ -93,42 +104,54 @@ export default function Categories() {
       {filtered.length === 0 ? (
         <EmptyState title="No categories found" />
       ) : (
-        <div className="overflow-x-auto border border-navy-200 rounded-lg bg-white">
-          <table className="min-w-full divide-y divide-navy-100 text-sm">
-            <thead className="bg-navy-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold text-navy-700">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-navy-700">
-                  Description
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-navy-700">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-navy-100">
-              {filtered.map((c) => (
-                <tr key={c._id} className="hover:bg-navy-50/50">
-                  <td className="px-4 py-3 font-medium text-navy-900">{c.name}</td>
-                  <td className="px-4 py-3 text-navy-700">
-                    {c.description || '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button
-                      variant="ghost"
-                      className="!px-2 !py-1.5"
-                      onClick={() => openEdit(c)}
-                    >
-                      <Pencil size={16} />
-                    </Button>
-                  </td>
+        <>
+          <div className="overflow-x-auto border border-navy-200 rounded-lg bg-white">
+            <table className="min-w-full divide-y divide-navy-100 text-sm">
+              <thead className="bg-navy-50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-navy-700">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-navy-700">
+                    Description
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-navy-700">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-navy-100">
+                {paginated.map((c) => (
+                  <tr key={c._id} className="hover:bg-navy-50/50">
+                    <td className="px-4 py-3 font-medium text-navy-900">
+                      {c.name}
+                    </td>
+                    <td className="px-4 py-3 text-navy-700">
+                      {c.description || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button
+                        variant="ghost"
+                        className="!px-2 !py-1.5"
+                        onClick={() => openEdit(c)}
+                      >
+                        <Pencil size={16} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </>
       )}
 
       <Modal

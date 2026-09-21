@@ -11,6 +11,16 @@ export const STATUS_LABELS = {
 
 export const STATUS_OPTIONS = Object.keys(STATUS_LABELS);
 
+export const BIN_STATUSES = ['sold', 'missing'];
+
+export const ACTIVE_STATUSES = STATUS_OPTIONS.filter(
+  (s) => !BIN_STATUSES.includes(s)
+);
+
 export const CONDITION_OPTIONS = ['Pristine', 'Good', 'Damaged', 'Deteriorated'];
 
 export const UNIT_OPTIONS = ['cm', 'in', 'mm'];
+
+export function isBinStatus(status) {
+  return BIN_STATUSES.includes(status);
+}

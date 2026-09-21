@@ -1,34 +1,57 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useGetArtworksQuery } from '../../features/artworks/artworkApi';
 import { useGetArtistsQuery } from '../../features/artists/artistApi';
 import { useGetCategoriesQuery } from '../../features/categories/categoryApi';
 import ArtworkTable from '../../features/artworks/ArtworkTable';
-import ArtworkFilters from '../../features/artworks/ArtworkFilter';
-import StatusChangeModel from '../../features/artworks/StatusChangeModel';
+import ArtworkFilter from '../../features/artworks/ArtworkFilter';
+import StatusChangeModal from '../../features/artworks/StatusChangeModel';
 import SellModal from '../../features/artworks/SellModal';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import Input from '../../components/ui/Input';
+import Pagination from '../../components/ui/Pagination';
+import usePagination from '../../hooks/usePagination';
+import { isBinStatus } from '../../features/artworks/artworkUtils';
 
 export default function Artworks() {
   const { data: artworks = [], isLoading, isError } = useGetArtworksQuery();
   const { data: artists = [] } = useGetArtistsQuery();
   const { data: categories = [] } = useGetCategoriesQuery();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({
     categoryId: '',
-    artistId: '',
+    artistId: searchParams.get('artistId') || '',
     status: '',
     condition: '',
+    buyerCin: searchParams.get('buyerCin') || '',
+    depositorCin: searchParams.get('depositorCin') || '',
   });
   const [statusTarget, setStatusTarget] = useState(null);
   const [sellTarget, setSellTarget] = useState(null);
 
+  useEffect(() => {
+    const artistId = searchParams.get('artistId') || '';
+    const buyerCin = searchParams.get('buyerCin') || '';
+    const depositorCin = searchParams.get('depositorCin') || '';
+    setFilters((prev) => ({
+      ...prev,
+      artistId,
+      buyerCin,
+      depositorCin,
+    }));
+  }, [searchParams]);
+
+  const activeArtworks = useMemo(
+    () => artworks.filter((a) => !isBinStatus(a.status)),
+    [artworks]
+  );
+
   const filtered = useMemo(() => {
-    return artworks.filter((a) => {
+    return activeArtworks.filter((a) => {
       if (search && !a.title?.toLowerCase().includes(search.toLowerCase())) {
         return false;
       }
@@ -42,9 +65,35 @@ export default function Artworks() {
       }
       if (filters.status && a.status !== filters.status) return false;
       if (filters.condition && a.condition !== filters.condition) return false;
+      if (filters.buyerCin && a.buyerCin !== filters.buyerCin) return false;
+      if (filters.depositorCin && a.depositorCin !== filters.depositorCin) {
+        return false;
+      }
       return true;
     });
-  }, [artworks, search, filters]);
+  }, [activeArtworks, search, filters]);
+
+  const {
+    page,
+    pageSize,
+    total,
+    paginated,
+    setPage,
+    setPageSize,
+  } = usePagination(filtered, 10);
+
+  const clearActorFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      artistId: '',
+      buyerCin: '',
+      depositorCin: '',
+    }));
+    setSearchParams({});
+  };
+
+  const hasActorFilter =
+    filters.artistId || filters.buyerCin || filters.depositorCin;
 
   if (isLoading) return <Spinner />;
   if (isError) {
@@ -67,27 +116,48 @@ export default function Artworks() {
         </Link>
       </div>
 
+      {hasActorFilter && (
+        <div className="flex items-center gap-3 bg-navy-50 border border-navy-200 rounded-md px-4 py-2 text-sm text-navy-700">
+          <span>Filtered by related actor</span>
+          <button
+            onClick={clearActorFilters}
+            className="text-navy-800 font-medium hover:underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
+
       <div className="bg-white border border-navy-200 rounded-lg p-4 space-y-4">
         <Input
           placeholder="Search by title..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <ArtworkFilters
+        <ArtworkFilter
           filters={filters}
           onChange={setFilters}
           artists={artists}
           categories={categories}
+          statusScope="active"
         />
       </div>
 
       <ArtworkTable
-        artworks={filtered}
+        artworks={paginated}
         onStatusClick={setStatusTarget}
         onSellClick={setSellTarget}
       />
 
-      <StatusChangeModel
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
+
+      <StatusChangeModal
         open={Boolean(statusTarget)}
         onClose={() => setStatusTarget(null)}
         artwork={statusTarget}

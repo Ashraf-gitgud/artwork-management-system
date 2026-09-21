@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 import { Plus, Pencil } from 'lucide-react';
 import {
   useGetBuyersQuery,
@@ -11,6 +12,8 @@ import Input from '../../components/ui/Input';
 import Modal from '../../components/ui/Modal';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
+import Pagination from '../../components/ui/Pagination';
+import usePagination from '../../hooks/usePagination';
 
 export default function Buyers() {
   const { data: buyers = [], isLoading, isError } = useGetBuyersQuery();
@@ -38,6 +41,15 @@ export default function Buyers() {
         b.cin?.toLowerCase().includes(q)
     );
   }, [buyers, search]);
+
+  const {
+    page,
+    pageSize,
+    total,
+    paginated,
+    setPage,
+    setPageSize,
+  } = usePagination(filtered, 10);
 
   const openCreate = () => {
     setEditing(null);
@@ -95,44 +107,68 @@ export default function Buyers() {
       {filtered.length === 0 ? (
         <EmptyState title="No buyers found" />
       ) : (
-        <div className="overflow-x-auto border border-navy-200 rounded-lg bg-white">
-          <table className="min-w-full divide-y divide-navy-100 text-sm">
-            <thead className="bg-navy-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold text-navy-700">
-                  First Name
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-navy-700">
-                  Last Name
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-navy-700">
-                  CIN
-                </th>
-                <th className="px-4 py-3 text-right font-semibold text-navy-700">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-navy-100">
-              {filtered.map((b) => (
-                <tr key={b._id} className="hover:bg-navy-50/50">
-                  <td className="px-4 py-3 text-navy-900">{b.firstName}</td>
-                  <td className="px-4 py-3 text-navy-900">{b.lastName}</td>
-                  <td className="px-4 py-3 text-navy-700">{b.cin}</td>
-                  <td className="px-4 py-3 text-right">
-                    <Button
-                      variant="ghost"
-                      className="!px-2 !py-1.5"
-                      onClick={() => openEdit(b)}
-                    >
-                      <Pencil size={16} />
-                    </Button>
-                  </td>
+        <>
+          <div className="overflow-x-auto border border-navy-200 rounded-lg bg-white">
+            <table className="min-w-full divide-y divide-navy-100 text-sm">
+              <thead className="bg-navy-50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-navy-700">
+                    First Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-navy-700">
+                    Last Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-navy-700">
+                    CIN
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-navy-700">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-navy-100">
+                {paginated.map((b) => (
+                  <tr key={b._id} className="hover:bg-navy-50/50">
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/artworks?buyerCin=${encodeURIComponent(b.cin)}`}
+                        className="text-navy-900 hover:underline font-medium"
+                      >
+                        {b.firstName}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/artworks?buyerCin=${encodeURIComponent(b.cin)}`}
+                        className="text-navy-900 hover:underline"
+                      >
+                        {b.lastName}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-navy-700">{b.cin}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Button
+                        variant="ghost"
+                        className="!px-2 !py-1.5"
+                        onClick={() => openEdit(b)}
+                      >
+                        <Pencil size={16} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </>
       )}
 
       <Modal
