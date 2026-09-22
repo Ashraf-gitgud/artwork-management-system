@@ -30,6 +30,7 @@ export default function Artworks() {
     buyerCin: searchParams.get('buyerCin') || '',
     depositorCin: searchParams.get('depositorCin') || '',
   });
+
   const [statusTarget, setStatusTarget] = useState(null);
   const [sellTarget, setSellTarget] = useState(null);
 
@@ -37,6 +38,7 @@ export default function Artworks() {
     const artistId = searchParams.get('artistId') || '';
     const buyerCin = searchParams.get('buyerCin') || '';
     const depositorCin = searchParams.get('depositorCin') || '';
+
     setFilters((prev) => ({
       ...prev,
       artistId,
@@ -46,29 +48,53 @@ export default function Artworks() {
   }, [searchParams]);
 
   const activeArtworks = useMemo(
-    () => artworks.filter((a) => !isBinStatus(a.status)),
-    [artworks]
+    () =>
+      filters.buyerCin
+        ? artworks.filter((a) => a.status === 'sold')
+        : artworks.filter((a) => !isBinStatus(a.status)),
+    [artworks, filters.buyerCin]
   );
 
   const filtered = useMemo(() => {
     return activeArtworks.filter((a) => {
-      if (search && !a.title?.toLowerCase().includes(search.toLowerCase())) {
+      if (
+        search &&
+        !a.title?.toLowerCase().includes(search.toLowerCase())
+      ) {
         return false;
       }
+
       if (filters.categoryId) {
         const catId = a.categoryId?._id || a.categoryId;
+
         if (catId !== filters.categoryId) return false;
       }
+
       if (filters.artistId) {
         const artId = a.artistId?._id || a.artistId;
+
         if (artId !== filters.artistId) return false;
       }
-      if (filters.status && a.status !== filters.status) return false;
-      if (filters.condition && a.condition !== filters.condition) return false;
-      if (filters.buyerCin && a.buyerCin !== filters.buyerCin) return false;
-      if (filters.depositorCin && a.depositorCin !== filters.depositorCin) {
+
+      if (filters.status && a.status !== filters.status) {
         return false;
       }
+
+      if (filters.condition && a.condition !== filters.condition) {
+        return false;
+      }
+
+      if (filters.buyerCin && a.buyerCin !== filters.buyerCin) {
+        return false;
+      }
+
+      if (
+        filters.depositorCin &&
+        a.depositorCin !== filters.depositorCin
+      ) {
+        return false;
+      }
+
       return true;
     });
   }, [activeArtworks, search, filters]);
@@ -89,13 +115,17 @@ export default function Artworks() {
       buyerCin: '',
       depositorCin: '',
     }));
+
     setSearchParams({});
   };
 
   const hasActorFilter =
-    filters.artistId || filters.buyerCin || filters.depositorCin;
+    filters.artistId ||
+    filters.buyerCin ||
+    filters.depositorCin;
 
   if (isLoading) return <Spinner />;
+
   if (isError) {
     return (
       <div className="text-red-600 bg-red-50 p-4 rounded-md">
@@ -107,7 +137,10 @@ export default function Artworks() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-xl font-semibold text-navy-900">Artworks</h2>
+        <h2 className="text-xl font-semibold text-navy-900">
+          Artworks
+        </h2>
+
         <Link to="/artworks/new">
           <Button>
             <Plus size={18} />
@@ -119,6 +152,7 @@ export default function Artworks() {
       {hasActorFilter && (
         <div className="flex items-center gap-3 bg-navy-50 border border-navy-200 rounded-md px-4 py-2 text-sm text-navy-700">
           <span>Filtered by related actor</span>
+
           <button
             onClick={clearActorFilters}
             className="text-navy-800 font-medium hover:underline"
@@ -134,6 +168,7 @@ export default function Artworks() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
         <ArtworkFilter
           filters={filters}
           onChange={setFilters}
@@ -162,6 +197,7 @@ export default function Artworks() {
         onClose={() => setStatusTarget(null)}
         artwork={statusTarget}
       />
+
       <SellModal
         open={Boolean(sellTarget)}
         onClose={() => setSellTarget(null)}
