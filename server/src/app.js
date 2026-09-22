@@ -11,7 +11,7 @@ import artworkRoutes from "./routes/artworkRoutes.js";
 const app = express();
 
 app.use(cors({
-  origin: "https://artwork-management-system-alpha.vercel.app"
+  origin: "https://artwork-management-system-nwrjhu354-ash-e2ec.vercel.app/"
 }));
 app.use(express.json());
 app.use(morgan("dev"));
