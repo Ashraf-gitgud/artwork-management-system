@@ -11,6 +11,7 @@ import SellModal from '../../features/artworks/SellModal';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Spinner from '../../components/ui/Spinner';
+import ImageLightbox from '../../components/ui/ImageLightbox';
 import { ArrowLeft, Pencil, RefreshCw, ShoppingCart } from 'lucide-react';
 
 export default function ArtworkDetails() {
@@ -24,6 +25,7 @@ export default function ArtworkDetails() {
 
   const [statusOpen, setStatusOpen] = useState(false);
   const [sellOpen, setSellOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   if (isLoading) return <Spinner />;
   if (isError || !artwork) {
@@ -92,16 +94,22 @@ export default function ArtworkDetails() {
         )}
       </div>
 
-      {/* Header */}
       <Card>
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-48 h-48 bg-navy-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
             {artwork.imageUrl ? (
-              <img
-                src={artwork.imageUrl}
-                alt={artwork.title}
-                className="w-full h-full object-cover"
-              />
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                className="w-full h-full cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2 rounded-lg"
+                title="View full image"
+              >
+                <img
+                  src={artwork.imageUrl}
+                  alt={artwork.title}
+                  className="w-full h-full object-cover"
+                />
+              </button>
             ) : (
               <span className="text-navy-400 text-sm">No image</span>
             )}
@@ -220,6 +228,12 @@ export default function ArtworkDetails() {
         open={sellOpen}
         onClose={() => setSellOpen(false)}
         artwork={artwork}
+      />
+      <ImageLightbox
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        src={artwork.imageUrl}
+        alt={artwork.title}
       />
     </div>
   );
