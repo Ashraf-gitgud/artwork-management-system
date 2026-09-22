@@ -10,7 +10,9 @@ import artworkRoutes from "./routes/artworkRoutes.js";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "https://artwork-management-system-alpha.vercel.app"
+}));
 app.use(express.json());
 app.use(morgan("dev"));
 app.use("/api/users", userRoutes);
